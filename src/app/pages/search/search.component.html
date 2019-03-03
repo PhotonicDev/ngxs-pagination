@@ -1,0 +1,18 @@
+<a routerLink="/"> Go to landing</a>
+
+<div *ngIf="stateProducts$ | async as items">
+  <p *ngFor="let item of items">
+    <img class="avatar" [src]="item.productPhoto" />  {{ item.name }}
+  </p>
+</div>
+
+<p fxLayout="row">
+  <button [disabled]="pageNumber === 0" mat-raised-button (click)="previous()">
+        Previous page
+  </button>
+  <button [disabled]="isLastPage$ | async" mat-raised-button (click)="next()">
+    Next page
+  </button>
+</p>
+{{ isLastPage$ | async  }}
+{{ productCurrentPage$ | async  }}
