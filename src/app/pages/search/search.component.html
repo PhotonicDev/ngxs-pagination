@@ -1,18 +1,25 @@
 <a routerLink="/"> Go to landing</a>
 
-<div *ngIf="stateProducts$ | async as items">
-  <p *ngFor="let item of items">
-    <img class="avatar" [src]="item.productPhoto" />  {{ item.name }}
+<div #scrollMe scrollable (scrollPosition)="scrollHandler($event)" style="height: 300px; width: 500px;border:2px gray solid; overflow:auto;" *ngIf="stateItems$ | async as items">
+  <p class="no-more" *ngIf="isLastPage$ | async">
+    No more records
+  </p>
+  <p [matTooltip]="item.dateCreated?.toDate() | date:'short'" class="message" *ngFor="let item of items; trackBy: trackByUid">
+    <!-- {{ item | json }} -->
+    {{ item.message }}
   </p>
 </div>
-
-<p fxLayout="row">
+<div>
+  <mat-form-field>
+    <input matInput [(ngModel)]="message" type="text" />
+  </mat-form-field>
+  <button (click)="sendMessage()" mat-raised-button> Send message</button>
+</div>
+<!-- <p fxLayout="row">
   <button [disabled]="pageNumber === 0" mat-raised-button (click)="previous()">
         Previous page
   </button>
   <button [disabled]="isLastPage$ | async" mat-raised-button (click)="next()">
     Next page
   </button>
-</p>
-{{ isLastPage$ | async  }}
-{{ productCurrentPage$ | async  }}
+</p> -->

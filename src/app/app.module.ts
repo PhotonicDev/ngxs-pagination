@@ -13,8 +13,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgxsModule } from '@ngxs/store';
 import { NgxsReduxDevtoolsPluginModule } from '@ngxs/devtools-plugin';
 import { NgxsRouterPluginModule } from '@ngxs/router-plugin';
-import { ProductState } from './state/products/product.state';
-import { ProductService } from './state/products/product.service';
+import { ItemService } from './state/products/item.service';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 @NgModule({
@@ -35,7 +34,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
     }),
     NgxsRouterPluginModule.forRoot(),
   ],
-  providers: [ ProductService, { provide: FirestoreSettingsToken, useValue: {} } ],
+  providers: [ ItemService, { provide: FirestoreSettingsToken, useValue: {} } ],
   bootstrap: [ AppComponent ],
 })
 export class AppModule {}
