@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, Query, QueryDocumentSnapshot } from '@angular/fire/firestore';
+import {
+  AngularFirestore,
+  Query,
+  QueryDocumentSnapshot,
+} from '@angular/fire/firestore';
 import { PageConfig } from './common.model';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -13,31 +17,44 @@ export class CommonPageService {
 
   getItemBatch<T>(config: PageConfig): Observable<{ data: T[] }> {
     return this.afs
-      .collection<T>(config.collection, (ref) => {
+      .collection<T>(config.collection, ref => {
         let q: Query = ref;
         q = q.limit(config.pageSize);
         q = q.orderBy(...config.orderBy);
         return q;
       })
-      .stateChanges([ 'added', 'modified', 'removed' ])
+      .stateChanges([
+        'added',
+        'modified',
+        'removed',
+      ])
       .pipe(
-        map((actions) => {
+        map(actions => {
           console.log(actions);
 
           this.indexList[config.collection] =
-            actions.length > 0 ? actions[actions.length - 1].payload.doc : this.indexList[config.collection];
+            actions.length > 0
+              ? actions[actions.length - 1].payload.doc
+              : this.indexList[config.collection];
           return {
-            data: actions.map((a) => {
-              return { uid: a.payload.doc.id, ...a.payload.doc.data() };
+            data: actions.map(a => {
+              return {
+                uid: a.payload.doc.id,
+                type: a.payload.type,
+                index: a.payload.newIndex,
+                ...a.payload.doc.data(),
+              };
             }),
           };
         }),
       );
   }
 
-  getNextItemBatch<T>(config: PageConfig): Observable<{ data: T[]; isLast: boolean }> {
+  getNextItemBatch<T>(
+    config: PageConfig,
+  ): Observable<{ data: T[]; isLast: boolean }> {
     return this.afs
-      .collection<T>(config.collection, (ref) => {
+      .collection<T>(config.collection, ref => {
         let q: Query = ref;
         q = q.limit(config.pageSize);
         q = q.orderBy(...config.orderBy);
@@ -46,13 +63,20 @@ export class CommonPageService {
       })
       .snapshotChanges()
       .pipe(
-        map((actions) => {
+        map(actions => {
           this.indexList[config.collection] =
-            actions.length > 0 ? actions[actions.length - 1].payload.doc : this.indexList[config.collection];
+            actions.length > 0
+              ? actions[actions.length - 1].payload.doc
+              : this.indexList[config.collection];
 
           const newData = {
-            data: actions.map((a) => {
-              return { uid: a.payload.doc.id, ...a.payload.doc.data() };
+            data: actions.map(a => {
+              return {
+                uid: a.payload.doc.id,
+                type: a.payload.type,
+                index: a.payload.newIndex,
+                ...a.payload.doc.data(),
+              };
             }),
             isLast: actions.length < config.pageSize,
           };

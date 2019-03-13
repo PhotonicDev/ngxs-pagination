@@ -4,16 +4,20 @@ import { Routes, RouterModule } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
-    loadChildren: './pages/landing/landing.module#LandingModule',
-  },
-  {
-    path: 'search',
     loadChildren: './pages/search/search.module#SearchModule',
   },
+  // {
+  //   path: '',
+  //   loadChildren: './pages/landing/landing.module#LandingModule',
+  // },
 ];
 
 @NgModule({
-  imports: [ RouterModule.forRoot(routes) ],
-  exports: [ RouterModule ],
+  imports: [
+    RouterModule.forRoot(routes),
+  ],
+  exports: [
+    RouterModule,
+  ],
 })
 export class AppRoutingModule {}

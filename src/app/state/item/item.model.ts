@@ -14,6 +14,7 @@ export interface Product {
 }
 export interface Message {
   dateCreated: any;
+  type?: 'added' | 'modified' | 'removed';
   uid: string;
   message: string;
 }

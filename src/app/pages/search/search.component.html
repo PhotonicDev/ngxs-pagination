@@ -4,16 +4,18 @@
   <p class="no-more" *ngIf="isLastPage$ | async">
     No more records
   </p>
-  <p [matTooltip]="item.dateCreated?.toDate() | date:'short'" class="message" *ngFor="let item of items; trackBy: trackByUid">
-    <!-- {{ item | json }} -->
+  <p fxLayout="row" fxLayoutAlign="start center" [matTooltip]="item.dateCreated?.toDate() | date:'short'" class="message" *ngFor="let item of items; trackBy: trackByUid">
+    <span>
     {{ item.message }}
+    </span>
+    <button mat-icon-button (click)="deleteMessage(item)"><mat-icon>close</mat-icon></button>
   </p>
 </div>
 <div>
   <mat-form-field>
     <input matInput [(ngModel)]="message" type="text" />
+  <button matSuffix (click)="sendMessage()" mat-icon-button><mat-icon>send</mat-icon></button>
   </mat-form-field>
-  <button (click)="sendMessage()" mat-raised-button> Send message</button>
 </div>
 <!-- <p fxLayout="row">
   <button [disabled]="pageNumber === 0" mat-raised-button (click)="previous()">

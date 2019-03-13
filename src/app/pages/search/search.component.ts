@@ -8,11 +8,19 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
-import { ItemState } from 'src/app/state/products/item.state';
+import { ItemState } from 'src/app/state/item/item.state';
 import { Observable } from 'rxjs';
-import { ChangePage, AddItem, GetNextItemBatch } from 'src/app/state/products/item.actions';
-import { Message } from 'src/app/state/products/item.model';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+import {
+  ChangePage,
+  AddItem,
+  GetNextItemBatch,
+  RemoveItem,
+} from 'src/app/state/item/item.actions';
+import { Message } from 'src/app/state/item/item.model';
+import {
+  AngularFirestore,
+  AngularFirestoreCollection,
+} from '@angular/fire/firestore';
 import * as firebase from 'firebase/app';
 import { map, first, filter } from 'rxjs/operators';
 
@@ -22,7 +30,9 @@ export interface MessageId extends Message {
 @Component({
   selector: 'app-search',
   templateUrl: 'search.component.html',
-  styleUrls: [ 'search.component.scss' ],
+  styleUrls: [
+    'search.component.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchComponent implements OnInit {
@@ -36,11 +46,13 @@ export class SearchComponent implements OnInit {
   constructor(private store: Store, private afs: AngularFirestore) {}
   ngOnInit() {
     this.scrollToBottom();
-    this.stateItems$.pipe(filter((list) => list.length > 0), first()).subscribe((list) => {
-      setTimeout(() => {
-        this.scrollToBottom();
-      }, 100);
-    });
+    this.stateItems$
+      .pipe(filter(list => list.length > 0), first())
+      .subscribe(list => {
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 100);
+      });
   }
 
   scrollToBottom(): void {
@@ -63,6 +75,11 @@ export class SearchComponent implements OnInit {
         dateCreated: firebase.firestore.Timestamp.now(),
       }),
     );
+  }
+  deleteMessage(uid) {
+    console.log(uid);
+
+    this.store.dispatch(new RemoveItem(uid.uid));
   }
   scrollHandler(e) {
     if (e === 'top') {

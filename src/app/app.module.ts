@@ -7,17 +7,21 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { environment } from '../environments/environment';
 import { AngularFireModule } from '@angular/fire';
 import { AngularFireStorageModule } from '@angular/fire/storage';
-import { AngularFirestoreModule, FirestoreSettingsToken } from '@angular/fire/firestore';
+import {
+  AngularFirestoreModule,
+  FirestoreSettingsToken,
+} from '@angular/fire/firestore';
 import { AngularFireAuthModule } from '@angular/fire/auth';
 import { HttpClientModule } from '@angular/common/http';
 import { NgxsModule } from '@ngxs/store';
 import { NgxsReduxDevtoolsPluginModule } from '@ngxs/devtools-plugin';
 import { NgxsRouterPluginModule } from '@ngxs/router-plugin';
-import { ItemService } from './state/products/item.service';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 @NgModule({
-  declarations: [ AppComponent ],
+  declarations: [
+    AppComponent,
+  ],
   imports: [
     BrowserModule,
     AngularFireModule.initializeApp(environment.firebase),
@@ -34,7 +38,11 @@ import { FlexLayoutModule } from '@angular/flex-layout';
     }),
     NgxsRouterPluginModule.forRoot(),
   ],
-  providers: [ ItemService, { provide: FirestoreSettingsToken, useValue: {} } ],
-  bootstrap: [ AppComponent ],
+  providers: [
+    { provide: FirestoreSettingsToken, useValue: {} },
+  ],
+  bootstrap: [
+    AppComponent,
+  ],
 })
 export class AppModule {}
