@@ -1,9 +1,8 @@
-import { PageConfig, Message, ListUpdate } from './item.model';
+import { Message } from './item.model';
+import { ListUpdate, PageConfig } from '../common/common.model';
 
 export class GetItemBatch {
   static readonly type = 'GET_INITIAL_ITEM_BATCH';
-
-  constructor(public payload: PageConfig) {}
 }
 export class GetNextItemBatch {
   static readonly type = 'GET_NEXT_ITEM_BATCH';
@@ -24,5 +23,5 @@ export class AddItem {
 }
 export class UpdateList {
   static readonly type = 'UPDATE_LIST';
-  constructor(public payload: ListUpdate) {}
+  constructor(public payload: ListUpdate<Message[]>) {}
 }

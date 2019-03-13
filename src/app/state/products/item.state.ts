@@ -1,19 +1,20 @@
 import { Store, NgxsOnInit, State, Selector, StateContext, Action } from '@ngxs/store';
-import { ItemStateModel } from './item.model';
+import { ItemStateModel, Message } from './item.model';
 import { GetItemBatch, GetNextItemBatch, SetListLimit, AddItem, UpdateList } from './item.actions';
 import { ItemService } from './item.service';
-import { first } from 'rxjs/operators';
+import { first, tap } from 'rxjs/operators';
+import { CommonPageService } from '../common/common.service';
 
 @State<ItemStateModel>({
-  name: 'products',
+  name: 'messages',
   defaults: {
     data: [],
-    config: { pageSize: 10 },
+    config: { pageSize: 10, orderBy: [ 'dateCreated', 'desc' ], collection: 'messages' },
     isLastPage: false,
   },
 })
 export class ItemState implements NgxsOnInit {
-  constructor(private store: Store, private itemService: ItemService) {}
+  constructor(private store: Store, private page: CommonPageService) {}
 
   @Selector()
   static getItems(state: ItemStateModel) {
@@ -25,38 +26,36 @@ export class ItemState implements NgxsOnInit {
     return isLastPage;
   }
   ngxsOnInit() {
-    this.store.dispatch(new GetItemBatch({ pageSize: 10, orderBy: 'desc', filter: {} }));
+    this.store.dispatch(new GetItemBatch());
   }
   @Action(GetItemBatch)
-  getItemBatch({ getState, patchState, dispatch }: StateContext<ItemStateModel>, { payload }: GetItemBatch) {
-    this.itemService.getItemBatch(payload).subscribe((itemList) => {
-      console.log('initial', itemList);
-      if (itemList.data.length > 1) {
-        dispatch(new UpdateList({ data: itemList.data.reverse(), type: 'append' }));
-      } else {
-        dispatch(new UpdateList({ ...itemList, type: 'append' }));
-      }
-    });
-    patchState({
-      config: { ...payload },
+  getItemBatch({ getState, dispatch }: StateContext<ItemStateModel>) {
+    const state = getState();
+    return this.page.getItemBatch<Message>(state.config).subscribe((itemList) => {
+      dispatch(
+        new UpdateList({ data: itemList.data.length > 1 ? itemList.data.reverse() : itemList.data, type: 'append' }),
+      );
     });
   }
   @Action(AddItem)
-  addItem({ getState, patchState, dispatch }: StateContext<ItemStateModel>, { payload }: AddItem) {
-    console.log(payload);
-    this.itemService.addItem(payload);
+  addItem({ getState }: StateContext<ItemStateModel>, { payload }: AddItem) {
+    const state = getState();
+    return this.page.addItem<Message>(state.config.collection, payload);
   }
   @Action(GetNextItemBatch)
-  getNextItemBatch({ getState, patchState, dispatch }: StateContext<ItemStateModel>) {
+  getNextItemBatch({ getState, dispatch }: StateContext<ItemStateModel>) {
     const state = getState();
 
-    this.itemService.getNextItemBatch(state.config).pipe(first()).subscribe((itemList) => {
-      if (itemList.data.length < state.config.pageSize) {
-        dispatch(new SetListLimit(itemList.data.length + state.data.length));
-      }
-      const data = itemList.data.length > 1 ? itemList.data.reverse() : itemList.data;
-      dispatch(new UpdateList({ data, type: 'prepend' }));
-    });
+    return this.page.getNextItemBatch<Message>(state.config).pipe(
+      first(),
+      tap((result: { data: Message[]; isLast: boolean }) => {
+        if (result.data.length < state.config.pageSize) {
+          dispatch(new SetListLimit(result.data.length + state.data.length));
+        }
+        const data = result.data.length > 1 ? result.data.reverse() : result.data;
+        dispatch(new UpdateList({ data, type: 'prepend' }));
+      }),
+    );
   }
 
   @Action(SetListLimit)
@@ -69,14 +68,10 @@ export class ItemState implements NgxsOnInit {
     });
   }
   @Action(UpdateList)
-  listUpdate({ getState, patchState, dispatch }: StateContext<ItemStateModel>, { payload }: UpdateList) {
+  listUpdate({ getState, patchState }: StateContext<ItemStateModel>, { payload }: UpdateList) {
     const state = getState();
-    let data = [];
-    if (payload.type === 'prepend') {
-      data = [ ...payload.data, ...state.data ];
-    } else {
-      data = [ ...state.data, ...payload.data ];
-    }
+    const data: Message[] =
+      payload.type === 'prepend' ? [ ...payload.data, ...state.data ] : [ ...state.data, ...payload.data ];
     patchState({
       data,
     });

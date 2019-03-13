@@ -1,3 +1,5 @@
+import { PageConfig } from '../common/common.model';
+
 export interface ItemStateModel {
   data: Message[];
   config: PageConfig;
@@ -14,15 +16,4 @@ export interface Message {
   dateCreated: any;
   uid: string;
   message: string;
-}
-
-export interface PageConfig {
-  pageSize: number;
-  orderBy?: string;
-  filter?: { [key: string]: boolean };
-}
-
-export interface ListUpdate {
-  data: Message[];
-  type: 'prepend' | 'append';
 }

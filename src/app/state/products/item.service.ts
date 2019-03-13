@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AngularFirestore, Query } from '@angular/fire/firestore';
-import { PageConfig, Message } from './item.model';
+import { Message } from './item.model';
+import { PageConfig } from '../common/common.model';
 
 @Injectable()
 export class ItemService {

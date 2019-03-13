@@ -30,7 +30,7 @@ export class SearchComponent implements OnInit {
   @Select(ItemState.getItems) stateItems$: Observable<Message[]>;
   @Select(ItemState.noMorePages) isLastPage$: Observable<boolean>;
   pageNumber: number;
-  message: string = 'sumthing';
+  message = 'sumthing';
   private messageCollection: AngularFirestoreCollection<Message>;
 
   constructor(private store: Store, private afs: AngularFirestore) {}
