@@ -1,4 +1,3 @@
-<a routerLink="/"> Go to landing</a>
 
 <div #scrollMe scrollable (scrollPosition)="scrollHandler($event)" style="height: 300px; width: 500px;border:2px gray solid; overflow:auto;" *ngIf="stateItems$ | async as items">
   <p class="no-more" *ngIf="isLastPage$ | async">

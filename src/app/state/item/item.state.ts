@@ -1,11 +1,4 @@
-import {
-  Store,
-  NgxsOnInit,
-  State,
-  Selector,
-  StateContext,
-  Action,
-} from '@ngxs/store';
+import { Store, NgxsOnInit, State, Selector, StateContext, Action } from '@ngxs/store';
 import { ItemStateModel, Message } from './item.model';
 import {
   GetItemBatch,
@@ -20,7 +13,7 @@ import {
 } from './item.actions';
 import { first, tap } from 'rxjs/operators';
 import { CommonPageService } from '../common/common.service';
-import { patch, append, removeItem, updateItem } from '@ngxs/store/operators';
+import { patch, append, removeItem, insertItem, updateItem } from '@ngxs/store/operators';
 
 @State<ItemStateModel>({
   name: 'messages',
@@ -28,10 +21,7 @@ import { patch, append, removeItem, updateItem } from '@ngxs/store/operators';
     data: [],
     config: {
       pageSize: 10,
-      orderBy: [
-        'dateCreated',
-        'desc',
-      ],
+      orderBy: [ 'dateCreated', 'desc' ],
       collection: 'messages',
     },
     isLastPage: false,
@@ -57,7 +47,7 @@ export class ItemState implements NgxsOnInit {
     const state = getState();
     return this.page.getItemBatch<Message>(state.config).pipe(
       tap((result: { data: Message[] }) => {
-        result.data.forEach(x => {
+        result.data.forEach((x) => {
           console.log(x);
           if (x.type === 'added') {
             dispatch(new AddedItemChange(x));
@@ -107,26 +97,19 @@ export class ItemState implements NgxsOnInit {
         if (result.data.length < state.config.pageSize) {
           dispatch(new SetListLimit(result.data.length + state.data.length));
         }
-        const data =
-          result.data.length > 1 ? result.data.reverse() : result.data;
+        const data = result.data.length > 1 ? result.data.reverse() : result.data;
         dispatch(new UpdateList({ data, type: 'prepend' }));
       }),
     );
   }
   @Action(RemoveItem)
-  removeItem(
-    { getState }: StateContext<ItemStateModel>,
-    { payload }: RemoveItem,
-  ) {
+  removeItem({ getState }: StateContext<ItemStateModel>, { payload }: RemoveItem) {
     const state = getState();
     return this.page.removeItem(state.config.collection, payload);
   }
 
   @Action(SetListLimit)
-  setListLimit(
-    { getState, patchState }: StateContext<ItemStateModel>,
-    { payload }: SetListLimit,
-  ) {
+  setListLimit({ getState, patchState }: StateContext<ItemStateModel>, { payload }: SetListLimit) {
     const state = getState();
 
     const isLastPage = payload - state.config.pageSize;
@@ -135,21 +118,10 @@ export class ItemState implements NgxsOnInit {
     });
   }
   @Action(UpdateList)
-  listUpdate(
-    { getState, patchState }: StateContext<ItemStateModel>,
-    { payload }: UpdateList,
-  ) {
+  listUpdate({ getState, patchState }: StateContext<ItemStateModel>, { payload }: UpdateList) {
     const state = getState();
     const data: Message[] =
-      payload.type === 'prepend'
-        ? [
-            ...payload.data,
-            ...state.data,
-          ]
-        : [
-            ...state.data,
-            ...payload.data,
-          ];
+      payload.type === 'prepend' ? [ ...payload.data, ...state.data ] : [ ...state.data, ...payload.data ];
     patchState({
       data,
     });
@@ -164,15 +136,12 @@ export class ItemState implements NgxsOnInit {
     console.log('after modified change', payload);
     setState(
       patch({
-        data: updateItem(x => x.uid === payload.uid, payload),
+        data: updateItem((x) => x.uid === payload.uid, payload),
       }),
     );
   }
   @Action(RemovedItemChange)
-  removedItemChange(
-    { getState, patchState, setState }: StateContext<ItemStateModel>,
-    { payload }: RemovedItemChange,
-  ) {
+  removedItemChange({ getState, patchState, setState }: StateContext<ItemStateModel>, { payload }: RemovedItemChange) {
     // const state = getState();
     // const data = state.data.filter(
     //   x => payload.findIndex(y => x.uid === y.uid) === -1,
@@ -185,18 +154,13 @@ export class ItemState implements NgxsOnInit {
     );
   }
   @Action(AddedItemChange)
-  addedItemChange(
-    { getState, setState }: StateContext<ItemStateModel>,
-    { payload }: AddedItemChange,
-  ) {
+  addedItemChange({ getState, setState }: StateContext<ItemStateModel>, { payload }: AddedItemChange) {
     const state = getState();
 
     console.log('after added change', payload);
     setState(
       patch({
-        data: append([
-          payload,
-        ]),
+        data: insertItem(payload, payload.index),
       }),
     );
   }
