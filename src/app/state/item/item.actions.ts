@@ -21,6 +21,9 @@ export class AddItem {
   static readonly type = '[Item] Add item';
   constructor(public payload: Message) {}
 }
+export class EditItem {
+  static readonly type = '[Item] Edit item';
+}
 export class UpdateList {
   static readonly type = '[Item] Update list';
   constructor(public payload: ListUpdate<Message[]>) {}

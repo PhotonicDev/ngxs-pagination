@@ -1,12 +1,4 @@
-import {
-  Component,
-  OnInit,
-  ElementRef,
-  ViewChild,
-  AfterViewChecked,
-  ChangeDetectionStrategy,
-  AfterViewInit,
-} from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { ItemState } from 'src/app/state/item/item.state';
 import { Observable } from 'rxjs';
@@ -71,7 +63,7 @@ export class SearchComponent implements OnInit {
     this.store.dispatch(new RemoveItem(item.uid));
   }
   editMessage(item) {
-    this.store.dispatch(new EditItem(item));
+    // this.store.dispatch(new EditItem(item));
   }
   scrollHandler(e) {
     if (e === 'top') {
@@ -80,7 +72,10 @@ export class SearchComponent implements OnInit {
       this.store.dispatch(new GetNextItemBatch());
     }
   }
+  loadMore() {
+    this.store.dispatch(new GetNextItemBatch());
+  }
   trackByUid(i, item) {
-    return item.uid;
+    return i;
   }
 }

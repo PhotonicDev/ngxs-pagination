@@ -1,18 +1,27 @@
 
-<div #scrollMe scrollable (scrollPosition)="scrollHandler($event)" style="height: 300px; width: 500px;border:2px gray solid; overflow:auto;" *ngIf="stateItems$ | async as items">
+<div #scrollMe style="height: 300px; width: 500px;border:2px gray solid; overflow:auto;" *ngIf="stateItems$ | async as items">
+  <button mat-button color="primary" (click)="loadMore()">Load more items</button>
   <p class="no-more" *ngIf="isLastPage$ | async">
     No more records
   </p>
-  <p fxLayout="row" fxLayoutAlign="start center" [matTooltip]="item.dateCreated?.toDate() | date:'short'" class="message" *ngFor="let item of items; trackBy: trackByUid">
-    <span>
-    {{ item.message }}
-    </span>
-    <span fxFlex></span>
-    <button mat-icon-button [matMenuTriggerFor]="appMenu"><mat-icon>more_vert</mat-icon></button>
-    <mat-menu #appMenu="matMenu">
-      <button mat-icon-button (click)="deleteMessage(item)"><mat-icon>delete</mat-icon></button>
-      <button mat-icon-button (click)="editMessage(item)"><mat-icon>edit</mat-icon></button>
-    </mat-menu>
+  <p fxLayout="row" fxLayoutAlign="start center" [matTooltip]="item?.dateCreated.toDate() | date:'short'" class="message" *ngFor="let item of items; trackBy: trackByUid">
+   <ng-container *ngIf="item; then messageTemp; else deletedTemp;"></ng-container>
+   <ng-template #messageTemp>
+     <span>
+       {{ item.message }}
+      </span>
+      <span fxFlex></span>
+      <button mat-icon-button [matMenuTriggerFor]="appMenu"><mat-icon>more_vert</mat-icon></button>
+      <mat-menu #appMenu="matMenu">
+        <button mat-icon-button (click)="deleteMessage(item)"><mat-icon>delete</mat-icon></button>
+        <button mat-icon-button (click)="editMessage(item)"><mat-icon>edit</mat-icon></button>
+      </mat-menu>
+    </ng-template>
+    <ng-template #deletedTemp>
+      <p style="color:gray;">
+        Record has been deleted
+      </p>
+    </ng-template>
   </p>
 </div>
 <div>
@@ -21,11 +30,3 @@
   <button matSuffix (click)="sendMessage()" mat-icon-button><mat-icon>send</mat-icon></button>
   </mat-form-field>
 </div>
-<!-- <p fxLayout="row">
-  <button [disabled]="pageNumber === 0" mat-raised-button (click)="previous()">
-        Previous page
-  </button>
-  <button [disabled]="isLastPage$ | async" mat-raised-button (click)="next()">
-    Next page
-  </button>
-</p> -->

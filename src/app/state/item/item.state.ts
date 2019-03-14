@@ -21,7 +21,7 @@ import { patch, append, removeItem, insertItem, updateItem } from '@ngxs/store/o
     data: [],
     config: {
       pageSize: 10,
-      orderBy: [ 'dateCreated', 'asc' ],
+      orderBy: [ 'dateCreated', 'desc' ],
       collection: 'messages',
     },
     isLastPage: false,
@@ -32,7 +32,7 @@ export class ItemState implements NgxsOnInit {
 
   @Selector()
   static getItems(state: ItemStateModel) {
-    return state.data;
+    return [ ...state.data ].reverse();
   }
 
   @Selector()
@@ -83,6 +83,7 @@ export class ItemState implements NgxsOnInit {
       }),
     );
   }
+
   @Action(RemoveItem)
   removeItem({ getState }: StateContext<ItemStateModel>, { payload }: RemoveItem) {
     const state = getState();
@@ -112,8 +113,6 @@ export class ItemState implements NgxsOnInit {
     { getState, patchState, setState }: StateContext<ItemStateModel>,
     { payload }: ModifiedItemChange,
   ) {
-    // const state = getState();
-    // const data = ;
     console.log('after modified change', payload);
     setState(
       patch({
@@ -123,14 +122,10 @@ export class ItemState implements NgxsOnInit {
   }
   @Action(RemovedItemChange)
   removedItemChange({ getState, patchState, setState }: StateContext<ItemStateModel>, { payload }: RemovedItemChange) {
-    // const state = getState();
-    // const data = state.data.filter(
-    //   x => payload.findIndex(y => x.uid === y.uid) === -1,
-    // );
     console.log('after removed change', payload);
     setState(
       patch({
-        data: removeItem((x: Message) => x.uid === payload.uid),
+        data: updateItem((x) => x.uid === payload.uid, null),
       }),
     );
   }
