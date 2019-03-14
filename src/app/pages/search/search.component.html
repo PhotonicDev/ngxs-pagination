@@ -7,12 +7,17 @@
     <span>
     {{ item.message }}
     </span>
-    <button mat-icon-button (click)="deleteMessage(item)"><mat-icon>close</mat-icon></button>
+    <span fxFlex></span>
+    <button mat-icon-button [matMenuTriggerFor]="appMenu"><mat-icon>more_vert</mat-icon></button>
+    <mat-menu #appMenu="matMenu">
+      <button mat-icon-button (click)="deleteMessage(item)"><mat-icon>delete</mat-icon></button>
+      <button mat-icon-button (click)="editMessage(item)"><mat-icon>edit</mat-icon></button>
+    </mat-menu>
   </p>
 </div>
 <div>
-  <mat-form-field>
-    <input matInput [(ngModel)]="message" type="text" />
+  <mat-form-field style="width: 500px;">
+    <input matInput (keyup.enter)="sendMessage()" [(ngModel)]="message" type="text" />
   <button matSuffix (click)="sendMessage()" mat-icon-button><mat-icon>send</mat-icon></button>
   </mat-form-field>
 </div>

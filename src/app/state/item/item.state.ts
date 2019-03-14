@@ -21,7 +21,7 @@ import { patch, append, removeItem, insertItem, updateItem } from '@ngxs/store/o
     data: [],
     config: {
       pageSize: 10,
-      orderBy: [ 'dateCreated', 'desc' ],
+      orderBy: [ 'dateCreated', 'asc' ],
       collection: 'messages',
     },
     isLastPage: false,
@@ -59,25 +59,6 @@ export class ItemState implements NgxsOnInit {
             dispatch(new ModifiedItemChange(x));
           }
         });
-        // const added = result.data.filter(x => x.type === 'added');
-        // const removed = result.data.filter(x => x.type === 'removed');
-        // const modified = result.data.filter(x => x.type === 'modified');
-        // if (added.length > 0) {
-        //   dispatch(new AddedItemChange(added));
-        // }
-        // if (removed.length > 0) {
-        //   dispatch(new RemovedItemChange(added));
-        // }
-        // if (modified.length > 0) {
-        //   dispatch(new ModifiedItemChange(added));
-        // }
-
-        // dispatch(
-        //   new UpdateList({
-        //     data: result.data.length > 1 ? result.data.reverse() : result.data,
-        //     type: 'append',
-        //   }),
-        // );
       }),
     );
   }
@@ -157,7 +138,6 @@ export class ItemState implements NgxsOnInit {
   addedItemChange({ getState, setState }: StateContext<ItemStateModel>, { payload }: AddedItemChange) {
     const state = getState();
 
-    console.log('after added change', payload);
     setState(
       patch({
         data: insertItem(payload, payload.index),

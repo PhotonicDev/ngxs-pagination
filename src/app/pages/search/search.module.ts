@@ -7,12 +7,7 @@ import { NgxsModule } from '@ngxs/store';
 import { MatButtonModule } from '@angular/material/button';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {
-  MatInputModule,
-  MatFormFieldModule,
-  MatTooltipModule,
-  MatIconModule,
-} from '@angular/material';
+import { MatInputModule, MatFormFieldModule, MatTooltipModule, MatIconModule, MatMenuModule } from '@angular/material';
 import { ScrollableDirective } from 'src/app/directives/scrollable.directive';
 import { VirtualScrollerModule } from 'ngx-virtual-scroller';
 const routesSearch = [
@@ -23,23 +18,19 @@ const routesSearch = [
 ];
 
 @NgModule({
-  declarations: [
-    SearchComponent,
-    ScrollableDirective,
-  ],
+  declarations: [ SearchComponent, ScrollableDirective ],
   imports: [
     CommonModule,
     FlexLayoutModule,
     MatFormFieldModule,
     FormsModule,
+    MatMenuModule,
     MatTooltipModule,
     ReactiveFormsModule,
     MatIconModule,
     MatInputModule,
     VirtualScrollerModule,
-    NgxsModule.forFeature([
-      ItemState,
-    ]),
+    NgxsModule.forFeature([ ItemState ]),
     RouterModule.forChild(routesSearch),
     MatButtonModule,
   ],
