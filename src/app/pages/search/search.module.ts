@@ -10,6 +10,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule, MatFormFieldModule, MatTooltipModule, MatIconModule, MatMenuModule } from '@angular/material';
 import { ScrollableDirective } from 'src/app/directives/scrollable.directive';
 import { VirtualScrollerModule } from 'ngx-virtual-scroller';
+import { TimeAgoPipe } from 'time-ago-pipe';
 const routesSearch = [
   {
     path: '',
@@ -18,7 +19,7 @@ const routesSearch = [
 ];
 
 @NgModule({
-  declarations: [ SearchComponent, ScrollableDirective ],
+  declarations: [ SearchComponent, ScrollableDirective, TimeAgoPipe ],
   imports: [
     CommonModule,
     FlexLayoutModule,

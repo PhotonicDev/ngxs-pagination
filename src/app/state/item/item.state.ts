@@ -10,10 +10,11 @@ import {
   ModifiedItemChange,
   RemovedItemChange,
   AddedItemChange,
+  ModifyItem,
 } from './item.actions';
 import { first, tap } from 'rxjs/operators';
 import { CommonPageService } from '../common/common.service';
-import { patch, append, removeItem, insertItem, updateItem } from '@ngxs/store/operators';
+import { patch, removeItem, insertItem, updateItem } from '@ngxs/store/operators';
 
 @State<ItemStateModel>({
   name: 'messages',
@@ -23,6 +24,7 @@ import { patch, append, removeItem, insertItem, updateItem } from '@ngxs/store/o
       pageSize: 10,
       orderBy: [ 'dateCreated', 'desc' ],
       collection: 'messages',
+      page: 0,
     },
     isLastPage: false,
   },
@@ -31,23 +33,25 @@ export class ItemState implements NgxsOnInit {
   constructor(private store: Store, private page: CommonPageService) {}
 
   @Selector()
-  static getItems(state: ItemStateModel) {
-    return [ ...state.data ].reverse();
+  static getItems({ data }: ItemStateModel) {
+    return [ ...data ].reverse();
   }
 
   @Selector()
   static noMorePages({ isLastPage }: ItemStateModel) {
     return isLastPage;
   }
+
   ngxsOnInit() {
     this.store.dispatch(new GetItemBatch());
   }
+
   @Action(GetItemBatch)
   getItemBatch({ getState, dispatch }: StateContext<ItemStateModel>) {
-    const state = getState();
-    return this.page.getItemBatch<Message>(state.config).pipe(
-      tap((result: { data: Message[] }) => {
-        result.data.forEach((x) => {
+    const { config } = getState();
+    return this.page.getItemBatch<Message>(config).pipe(
+      tap(({ data }) => {
+        data.forEach((x) => {
           console.log(x);
           if (x.type === 'added') {
             dispatch(new AddedItemChange(x));
@@ -63,79 +67,90 @@ export class ItemState implements NgxsOnInit {
     );
   }
 
-  @Action(AddItem)
-  addItem({ getState }: StateContext<ItemStateModel>, { payload }: AddItem) {
-    const state = getState();
-    return this.page.addItem<Message>(state.config.collection, payload);
-  }
   @Action(GetNextItemBatch)
   getNextItemBatch({ getState, dispatch }: StateContext<ItemStateModel>) {
-    const state = getState();
-
-    return this.page.getNextItemBatch<Message>(state.config).pipe(
+    const { config, data } = getState();
+    return this.page.getNextItemBatch<Message>(config, data[data.length - 1].uid).pipe(
       first(),
       tap((result: { data: Message[]; isLast: boolean }) => {
-        if (result.data.length < state.config.pageSize) {
-          dispatch(new SetListLimit(result.data.length + state.data.length));
+        if (result.data.length < config.pageSize) {
+          dispatch(new SetListLimit(result.data.length + data.length));
         }
-        const data = result.data.length > 1 ? result.data.reverse() : result.data;
-        dispatch(new UpdateList({ data, type: 'prepend' }));
+        dispatch(new UpdateList(result.data));
+      }),
+    );
+  }
+
+  @Action(SetListLimit)
+  setListLimit({ getState, patchState }: StateContext<ItemStateModel>, { payload }: SetListLimit) {
+    const { config } = getState();
+
+    const isLastPage = payload - config.pageSize;
+    patchState({
+      isLastPage,
+    });
+  }
+
+  @Action(UpdateList)
+  listUpdate({ getState, patchState }: StateContext<ItemStateModel>, { payload }: UpdateList) {
+    const { data } = getState();
+    patchState({
+      data: [ ...data, ...payload ],
+    });
+    // payload.forEach((x: Message) => {
+    //   if (x.type === 'added') {
+    //     dispatch(new AddedItemChange(x));
+    //   }
+    //   if (x.type === 'removed') {
+    //     dispatch(new RemovedItemChange(x));
+    //   }
+    //   if (x.type === 'modified') {
+    //     dispatch(new ModifiedItemChange(x));
+    //   }
+    // });
+  }
+
+  @Action(ModifyItem)
+  modifyItem({ getState }: StateContext<ItemStateModel>, { payload }: ModifyItem) {
+    const { config } = getState();
+    return this.page.modifyItem(config.collection, payload.uid, payload);
+  }
+
+  @Action(ModifiedItemChange)
+  modifiedItemChange({ setState }: StateContext<ItemStateModel>, { payload }: ModifiedItemChange) {
+    setState(
+      patch({
+        data: updateItem((x: Message) => x.uid === payload.uid, payload),
       }),
     );
   }
 
   @Action(RemoveItem)
   removeItem({ getState }: StateContext<ItemStateModel>, { payload }: RemoveItem) {
-    const state = getState();
-    return this.page.removeItem(state.config.collection, payload);
+    const { config } = getState();
+    return this.page.removeItem(config.collection, payload);
   }
 
-  @Action(SetListLimit)
-  setListLimit({ getState, patchState }: StateContext<ItemStateModel>, { payload }: SetListLimit) {
-    const state = getState();
-
-    const isLastPage = payload - state.config.pageSize;
-    patchState({
-      isLastPage,
-    });
-  }
-  @Action(UpdateList)
-  listUpdate({ getState, patchState }: StateContext<ItemStateModel>, { payload }: UpdateList) {
-    const state = getState();
-    const data: Message[] =
-      payload.type === 'prepend' ? [ ...payload.data, ...state.data ] : [ ...state.data, ...payload.data ];
-    patchState({
-      data,
-    });
-  }
-  @Action(ModifiedItemChange)
-  modifiedItemChange(
-    { getState, patchState, setState }: StateContext<ItemStateModel>,
-    { payload }: ModifiedItemChange,
-  ) {
-    console.log('after modified change', payload);
-    setState(
-      patch({
-        data: updateItem((x) => x.uid === payload.uid, payload),
-      }),
-    );
-  }
   @Action(RemovedItemChange)
-  removedItemChange({ getState, patchState, setState }: StateContext<ItemStateModel>, { payload }: RemovedItemChange) {
-    console.log('after removed change', payload);
+  removedItemChange({ setState }: StateContext<ItemStateModel>, { payload }: RemovedItemChange) {
     setState(
       patch({
-        data: updateItem((x) => x.uid === payload.uid, null),
+        data: removeItem((x: Message) => x.uid === payload.uid),
       }),
     );
   }
-  @Action(AddedItemChange)
-  addedItemChange({ getState, setState }: StateContext<ItemStateModel>, { payload }: AddedItemChange) {
-    const state = getState();
 
+  @Action(AddItem)
+  addItem({ getState }: StateContext<ItemStateModel>, { payload }: AddItem) {
+    const { config } = getState();
+    return this.page.addItem<Message>(config.collection, payload.uid, payload);
+  }
+
+  @Action(AddedItemChange)
+  addedItemChange({ setState }: StateContext<ItemStateModel>, { payload }: AddedItemChange) {
     setState(
       patch({
-        data: insertItem(payload, payload.index),
+        data: insertItem(payload, payload.newIndex),
       }),
     );
   }

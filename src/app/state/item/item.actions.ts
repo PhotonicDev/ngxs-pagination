@@ -1,5 +1,4 @@
 import { Message } from './item.model';
-import { ListUpdate } from '../common/common.model';
 
 export class GetItemBatch {
   static readonly type = '[Item] Get initial batch';
@@ -21,16 +20,17 @@ export class AddItem {
   static readonly type = '[Item] Add item';
   constructor(public payload: Message) {}
 }
-export class EditItem {
+export class ModifyItem {
   static readonly type = '[Item] Edit item';
+  constructor(public payload: Message) {}
 }
 export class UpdateList {
   static readonly type = '[Item] Update list';
-  constructor(public payload: ListUpdate<Message[]>) {}
+  constructor(public payload: Message[]) {}
 }
 export class RemoveItem {
   static readonly type = '[Item] Remove item';
-  constructor(public payload: string) {}
+  constructor(public payload: Message['uid']) {}
 }
 export class AddedItemChange {
   static readonly type = '[Item] Added item change';

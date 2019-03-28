@@ -1,13 +1,17 @@
-
-<div #scrollMe style="height: 300px; width: 500px;border:2px gray solid; overflow:auto;" *ngIf="stateItems$ | async as items">
-  <button mat-button color="primary" (click)="loadMore()">Load more items</button>
+<div fxLayout="column" fxLayoutAlign="center center" style="height: 100vh">
+<div #scrollMe fxFlex style="width: 100%;overflow:auto;padding:20px;" *ngIf="stateItems$ | async as items">
+  <button mat-button *ngIf="!(isLastPage$ | async)" color="primary" (click)="loadMore()">Load more items</button>
   <p class="no-more" *ngIf="isLastPage$ | async">
     No more records
   </p>
-  <p fxLayout="row" fxLayoutAlign="start center" [matTooltip]="item?.dateCreated.toDate() | date:'short'" class="message" *ngFor="let item of items; trackBy: trackByUid">
+  <p fxLayout="row" fxLayoutAlign="start center" [matTooltip]="item.dateCreated?.toDate() | timeAgo" class="message" *ngFor="let item of items; trackBy: trackByUid">
    <ng-container *ngIf="item; then messageTemp; else deletedTemp;"></ng-container>
    <ng-template #messageTemp>
      <span>
+       {{ item.newIndex }}
+       <small>
+         {{item.dateCreated ? (item.dateCreated.toDate() | timeAgo):''}}
+       </small>
        {{ item.message }}
       </span>
       <span fxFlex></span>
@@ -24,9 +28,12 @@
     </ng-template>
   </p>
 </div>
-<div>
-  <mat-form-field style="width: 500px;">
-    <input matInput (keyup.enter)="sendMessage()" [(ngModel)]="message" type="text" />
-  <button matSuffix (click)="sendMessage()" mat-icon-button><mat-icon>send</mat-icon></button>
+<div style="width: 100%">
+  <mat-form-field [color]="editMode? 'accent': 'primary'" appearance="fill"  style="width: 100%;">
+    <input #messageInput *ngIf="!editMode" autocomplete="off" placeholder="Message" matInput (keyup.enter)="sendMessage()" [(ngModel)]="message" type="text" />
+    <input #messageInput *ngIf="editMode" autocomplete="off" placeholder="Message" matInput (keyup.enter)="finishEditing()" [(ngModel)]="message" type="text" />
+  <button *ngIf="!editMode" matSuffix (click)="sendMessage()" mat-icon-button><mat-icon>send</mat-icon></button>
+  <button *ngIf="editMode" matSuffix (click)="finishEditing()" mat-icon-button><mat-icon>edit</mat-icon></button>
   </mat-form-field>
+</div>
 </div>

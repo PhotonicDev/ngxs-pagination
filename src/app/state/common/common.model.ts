@@ -2,9 +2,6 @@ export interface PageConfig {
   pageSize: number;
   orderBy: [string, 'asc' | 'desc'];
   collection: string;
+  page: number;
   filter?: { [key: string]: boolean };
-}
-export interface ListUpdate<T> {
-  data: T;
-  type: 'prepend' | 'append';
 }

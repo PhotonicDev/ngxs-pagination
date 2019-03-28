@@ -8,7 +8,7 @@ import { map } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class CommonPageService {
-  indexList: { [key: string]: QueryDocumentSnapshot<any> } = {};
+  indexList: { [key: string]: any } = {};
   constructor(private afs: AngularFirestore) {}
 
   getItemBatch<T>(config: PageConfig): Observable<{ data: T[] }> {
@@ -19,19 +19,17 @@ export class CommonPageService {
         q = q.orderBy(...config.orderBy);
         return q;
       })
-      .stateChanges([ 'added', 'modified', 'removed' ])
+      .stateChanges()
       .pipe(
         map((actions) => {
-          console.log(actions);
-
-          this.indexList[config.collection] =
-            actions.length > 0 ? actions[actions.length - 1].payload.doc : this.indexList[config.collection];
           return {
             data: actions.map((a) => {
+              this.indexList[a.payload.doc.id] = a.payload.doc;
               return {
                 uid: a.payload.doc.id,
                 type: a.payload.type,
-                index: a.payload.newIndex,
+                newIndex: a.payload.newIndex,
+                oldIndex: a.payload.oldIndex,
                 ...a.payload.doc.data(),
               };
             }),
@@ -40,27 +38,26 @@ export class CommonPageService {
       );
   }
 
-  getNextItemBatch<T>(config: PageConfig): Observable<{ data: T[]; isLast: boolean }> {
+  getNextItemBatch<T>(config: PageConfig, uid: string): Observable<{ data: T[]; isLast: boolean }> {
     return this.afs
       .collection<T>(config.collection, (ref) => {
         let q: Query = ref;
         q = q.limit(config.pageSize);
         q = q.orderBy(...config.orderBy);
-        q = q.startAfter(this.indexList[config.collection]);
+        q = q.startAfter(this.indexList[uid]);
         return q;
       })
       .snapshotChanges()
       .pipe(
         map((actions) => {
-          this.indexList[config.collection] =
-            actions.length > 0 ? actions[actions.length - 1].payload.doc : this.indexList[config.collection];
-
           const newData = {
             data: actions.map((a) => {
+              this.indexList[a.payload.doc.id] = a.payload.doc;
               return {
                 uid: a.payload.doc.id,
                 type: a.payload.type,
-                index: a.payload.newIndex,
+                newIndex: a.payload.newIndex,
+                oldIndex: a.payload.oldIndex,
                 ...a.payload.doc.data(),
               };
             }),
@@ -70,11 +67,14 @@ export class CommonPageService {
         }),
       );
   }
-  addItem<T>(dir: string, item: T): Promise<void> {
-    return this.afs.doc<T>(`${dir}/${item['uid']}`).set(item);
+  addItem<T>(dir: string, uid: string, item: T): Promise<void> {
+    return this.afs.doc<T>(`${dir}/${uid}`).set(item);
   }
 
-  removeItem(dir: string, uid: string): Promise<void> {
-    return this.afs.doc(`${dir}/${uid}`).delete();
+  removeItem<T>(dir: string, uid: string): Promise<void> {
+    return this.afs.doc<T>(`${dir}/${uid}`).delete();
+  }
+  modifyItem<T>(dir: string, uid: string, item: T): Promise<void> {
+    return this.afs.doc<T>(`${dir}/${uid}`).update(item);
   }
 }

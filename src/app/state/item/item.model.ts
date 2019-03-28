@@ -16,6 +16,8 @@ export interface Message {
   dateCreated: any;
   type?: 'added' | 'modified' | 'removed';
   uid: string;
-  index?: number;
+  newIndex?: number;
+  oldIndex?: number;
+  doc?: any;
   message: string;
 }
