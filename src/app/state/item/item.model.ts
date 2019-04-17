@@ -17,7 +17,7 @@ export interface Message {
   type?: 'added' | 'modified' | 'removed';
   uid: string;
   newIndex?: number;
+  deleted?: boolean;
   oldIndex?: number;
-  doc?: any;
   message: string;
 }

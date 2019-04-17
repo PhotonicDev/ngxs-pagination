@@ -51,6 +51,7 @@ export class ItemState implements NgxsOnInit {
     const { config } = getState();
     return this.page.getItemBatch<Message>(config).pipe(
       tap(({ data }) => {
+        console.log(data);
         data.forEach((x) => {
           console.log(x);
           if (x.type === 'added') {
@@ -68,16 +69,41 @@ export class ItemState implements NgxsOnInit {
   }
 
   @Action(GetNextItemBatch)
-  getNextItemBatch({ getState, dispatch }: StateContext<ItemStateModel>) {
+  getNextItemBatch({ patchState, getState, dispatch }: StateContext<ItemStateModel>) {
     const { config, data } = getState();
+    patchState({
+      config: {
+        ...config,
+        page: config.page + 1,
+      },
+    });
     return this.page.getNextItemBatch<Message>(config, data[data.length - 1].uid).pipe(
-      first(),
-      tap((result: { data: Message[]; isLast: boolean }) => {
-        if (result.data.length < config.pageSize) {
-          dispatch(new SetListLimit(result.data.length + data.length));
-        }
-        dispatch(new UpdateList(result.data));
+      // first(),
+      tap((result) => {
+        console.log(result);
+        result.data.forEach((x) => {
+          console.log(x);
+          const newIndex = x.newIndex + (config.page + 1) * config.pageSize;
+          const newItem = { ...x, newIndex };
+          console.log(x.newIndex, config.page, config.pageSize, newItem);
+
+          if (x.type === 'added') {
+            dispatch(new AddedItemChange(newItem));
+          }
+          if (x.type === 'removed') {
+            dispatch(new RemovedItemChange(newItem));
+          }
+          if (x.type === 'modified') {
+            dispatch(new ModifiedItemChange(newItem));
+          }
+        });
       }),
+      // tap((result: { data: Message[]; isLast: boolean }) => {
+      //   if (result.data.length < config.pageSize) {
+      //     dispatch(new SetListLimit(result.data.length + data.length));
+      //   }
+      //   dispatch(new UpdateList(result.data));
+      // }),
     );
   }
 
@@ -97,17 +123,6 @@ export class ItemState implements NgxsOnInit {
     patchState({
       data: [ ...data, ...payload ],
     });
-    // payload.forEach((x: Message) => {
-    //   if (x.type === 'added') {
-    //     dispatch(new AddedItemChange(x));
-    //   }
-    //   if (x.type === 'removed') {
-    //     dispatch(new RemovedItemChange(x));
-    //   }
-    //   if (x.type === 'modified') {
-    //     dispatch(new ModifiedItemChange(x));
-    //   }
-    // });
   }
 
   @Action(ModifyItem)
@@ -126,9 +141,16 @@ export class ItemState implements NgxsOnInit {
   }
 
   @Action(RemoveItem)
-  removeItem({ getState }: StateContext<ItemStateModel>, { payload }: RemoveItem) {
+  removeItem({ getState, setState }: StateContext<ItemStateModel>, { payload }: RemoveItem) {
     const { config } = getState();
-    return this.page.removeItem(config.collection, payload);
+    return this.page.removeItem(config.collection, payload.uid).then(() => {
+      const item = { ...payload, deleted: true };
+      setState(
+        patch({
+          data: updateItem((x: Message) => x.uid === payload.uid, item),
+        }),
+      );
+    });
   }
 
   @Action(RemovedItemChange)

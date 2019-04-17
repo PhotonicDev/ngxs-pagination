@@ -5,7 +5,7 @@
     No more records
   </p>
   <p fxLayout="row" fxLayoutAlign="start center" [matTooltip]="item.dateCreated?.toDate() | timeAgo" class="message" *ngFor="let item of items; trackBy: trackByUid">
-   <ng-container *ngIf="item; then messageTemp; else deletedTemp;"></ng-container>
+   <ng-container *ngIf="!item.deleted; then messageTemp; else deletedTemp;"></ng-container>
    <ng-template #messageTemp>
      <span>
        {{ item.newIndex }}

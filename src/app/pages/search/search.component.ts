@@ -54,7 +54,7 @@ export class SearchComponent implements OnInit {
     this.message = '';
   }
   deleteMessage(item) {
-    this.store.dispatch(new RemoveItem(item.uid));
+    this.store.dispatch(new RemoveItem(item));
   }
   editMessage(item) {
     this.editMode = true;

@@ -30,7 +30,7 @@ export class UpdateList {
 }
 export class RemoveItem {
   static readonly type = '[Item] Remove item';
-  constructor(public payload: Message['uid']) {}
+  constructor(public payload: Message) {}
 }
 export class AddedItemChange {
   static readonly type = '[Item] Added item change';

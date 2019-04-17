@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, Query, QueryDocumentSnapshot } from '@angular/fire/firestore';
+import { AngularFirestore, Query } from '@angular/fire/firestore';
 import { PageConfig } from './common.model';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -8,7 +8,7 @@ import { map } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class CommonPageService {
-  indexList: { [key: string]: any } = {};
+  private indexList: { [key: string]: any } = {};
   constructor(private afs: AngularFirestore) {}
 
   getItemBatch<T>(config: PageConfig): Observable<{ data: T[] }> {
@@ -39,33 +39,36 @@ export class CommonPageService {
   }
 
   getNextItemBatch<T>(config: PageConfig, uid: string): Observable<{ data: T[]; isLast: boolean }> {
-    return this.afs
-      .collection<T>(config.collection, (ref) => {
-        let q: Query = ref;
-        q = q.limit(config.pageSize);
-        q = q.orderBy(...config.orderBy);
-        q = q.startAfter(this.indexList[uid]);
-        return q;
-      })
-      .snapshotChanges()
-      .pipe(
-        map((actions) => {
-          const newData = {
-            data: actions.map((a) => {
-              this.indexList[a.payload.doc.id] = a.payload.doc;
-              return {
-                uid: a.payload.doc.id,
-                type: a.payload.type,
-                newIndex: a.payload.newIndex,
-                oldIndex: a.payload.oldIndex,
-                ...a.payload.doc.data(),
-              };
-            }),
-            isLast: actions.length < config.pageSize,
-          };
-          return newData;
-        }),
-      );
+    return (
+      this.afs
+        .collection<T>(config.collection, (ref) => {
+          let q: Query = ref;
+          q = q.limit(config.pageSize);
+          q = q.orderBy(...config.orderBy);
+          q = q.startAfter(this.indexList[uid]);
+          return q;
+        })
+        // .stateChanges()
+        .snapshotChanges()
+        .pipe(
+          map((actions) => {
+            const newData = {
+              data: actions.map((a) => {
+                this.indexList[a.payload.doc.id] = a.payload.doc;
+                return {
+                  uid: a.payload.doc.id,
+                  type: a.payload.type,
+                  newIndex: a.payload.newIndex,
+                  oldIndex: a.payload.oldIndex,
+                  ...a.payload.doc.data(),
+                };
+              }),
+              isLast: actions.length < config.pageSize,
+            };
+            return newData;
+          }),
+        )
+    );
   }
   addItem<T>(dir: string, uid: string, item: T): Promise<void> {
     return this.afs.doc<T>(`${dir}/${uid}`).set(item);
